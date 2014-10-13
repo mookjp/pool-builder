@@ -1,4 +1,5 @@
-$LOAD_PATH.unshift File.expand_path('../lib/builder', __FILE__)
+#!/usr/bin/env ruby
+# -*- mode: ruby -*-
 
 require 'em-websocket'
 require 'pty'
