@@ -1,5 +1,7 @@
 # Builder
 
+![](https://travis-ci.org/mookjp/pool-builder.svg?branch=master)
+
 TODO: Write a gem description
 
 ## Installation
