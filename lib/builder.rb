@@ -50,10 +50,11 @@ module Builder
       repository_url = File.open(@repository_conf).gets.chomp
       name = repository_url.split("/").last.split(".").first
       return {
-        :url => repository_url,
-        :name => name,
-        :path => "#{@work_dir}/#{name}",
-      }
+          :url => repository_url,
+          :name => name,
+          :container_prefix => container_prefix(name),
+          :path => "#{@work_dir}/#{name}",
+      }.freeze
     end
 
     # Initialize application Git repository to clone from remote
@@ -98,16 +99,22 @@ module Builder
     #
     # TODO: need to set protocol, port and path by the user
     def confirm_running(container_id)
+      ip = get_ip_of_container container_id
       port = get_port_of_container container_id
 
       tried_count = 1
       begin
         @logger.info "Checking application is ready... trying count:#{tried_count}"
-        Net::HTTP.get('0.0.0.0', '/', port)
+        req = Net::HTTP.new(ip, port)
+        res = req.get('/')
+        unless res.kind_of?(Net::HTTPSuccess) or res.kind_of?(Net::HTTPRedirection)
+            raise "Response status is not ready: #{res.code}"
+        end
         @logger.info("Application is ready! forwarding to port #{port}")
         @logger.info 'FINISHED'
+        @ws.send 'FINISHED'
       rescue
-        if tried_count <= 10
+        if tried_count <= 30
           sleep 1
           tried_count += 1
           retry
@@ -200,6 +207,16 @@ module Builder
     end
 
     #
+    # Get ip address of Docker container by docker inspect command
+    #
+    # [container_id]
+    #   Docker container id
+    #
+    def get_ip_of_container(container_id)
+      `docker inspect --format '{{ .NetworkSettings.IPAddress }}' #{container_id}`.chomp
+    end
+
+    #
     # Get port of Docker container by docker inspect command
     #
     # [container_id]
@@ -218,5 +235,8 @@ module Builder
       return 80
     end
 
+    def container_prefix name
+      return name.gsub(/-/, '_')
+    end
   end
 end
