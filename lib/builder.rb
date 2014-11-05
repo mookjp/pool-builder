@@ -4,7 +4,6 @@ require 'fileutils'
 require 'net/http'
 require 'logger'
 
-require 'builder/builder_log_device'
 require 'git'
 
 module Builder
@@ -13,10 +12,10 @@ module Builder
     #
     # Initialize method
     #
-    # [ws]
-    #   EM::WebSocket object
     # [git_commit_id]
     #   Git commit id
+    # [logger]
+    #   BuilderLogDevice which has EM::WebSocket and logfile in it
     # [work_dir]
     #   Working directory to save logfile and commit-image id file
     # [log_file]
@@ -25,25 +24,21 @@ module Builder
     #   File to store the references git-commit-id and docker-image-id
     # [repository_conf]
     #   File to store repository url
-    def initialize(ws,
-                   git_commit_id,
+    def initialize(git_commit_id,
+                   logger,
                    work_dir = '/app/images',
-                   log_file = "#{@work_dir}/builder.log",
-                   id_file = "#{@work_dir}/ids",
-                   repository_conf = "#{@work_dir}/preview_target_repository")
+                   id_file = "#{work_dir}/ids",
+                   repository_conf = "#{work_dir}/preview_target_repository")
       
       @work_dir = work_dir
       create_dirs
       
-      @log_file = log_file
       @id_file = id_file
       @repository_conf = repository_conf
-      @ws = ws
       @git_commit_id = git_commit_id
       @repository = read_repository_info
 
-
-      @logger = Logger.new(BuilderLogDevice.new(@ws, "#{@log_file}"))
+      @logger = logger
       @logger.info "Initialized. Git commit id: #{@git_commit_id}"
 
       # Initialize Git repository and set @rgit instance
@@ -64,8 +59,6 @@ module Builder
     # Initialize application Git repository to clone from remote
     # If the repository exists, it fetches the latest
     def init_repo
-      log_device = BuilderLogDevice.new(@ws)
-
       @logger.info "repository url:  #{@repository[:url]}"
 
       if FileTest.exist?(@repository[:path])
@@ -113,7 +106,6 @@ module Builder
         Net::HTTP.get('0.0.0.0', '/', port)
         @logger.info("Application is ready! forwarding to port #{port}")
         @logger.info 'FINISHED'
-        @ws.send 'FINISHED'
       rescue
         if tried_count <= 10
           sleep 1
