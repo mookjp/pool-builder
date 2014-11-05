@@ -13,7 +13,7 @@ EM.run {
 
       Thread.new(ws) do |ws|
         begin
-          builder = Builder.new(ws, @git_commit_id)
+          builder = Builder::Builder.new(ws, @git_commit_id)
           builder.up
         rescue => ex
           puts "#{ex.class}: #{ex.message}; #{ex.backtrace}"
