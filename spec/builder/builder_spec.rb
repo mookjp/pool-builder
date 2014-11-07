@@ -38,7 +38,7 @@ describe '.new' do
         allow(mock_ws).to receive(:nil?) {false}
 
         log_file = File.expand_path('log_file', @output_dir_path)
-        logger = Logger.new(BuilderLogDevice.new(mock_ws, log_file))
+        logger = Logger.new(Builder::BuilderLogDevice.new(mock_ws, log_file))
 
         # execute
         b = Builder::Builder.new('master', logger, @output_dir_path)

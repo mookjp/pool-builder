@@ -1,5 +1,3 @@
-$:.unshift(File.dirname(__FILE__))
-
 require 'fileutils'
 require 'net/http'
 require 'logger'
@@ -11,11 +9,10 @@ module Builder
 
     #
     # Initialize method
-    #
+    # [ws]
+    #   EM::WebSocket
     # [git_commit_id]
     #   Git commit id
-    # [logger]
-    #   BuilderLogDevice which has EM::WebSocket and logfile in it
     # [work_dir]
     #   Working directory to save logfile and commit-image id file
     # [log_file]
@@ -39,7 +36,7 @@ module Builder
       @git_commit_id = git_commit_id
       @repository = read_repository_info
 
-      @logger = Logger.new(BuilderLogDevice.new(@ws, "#{log_file}"))
+      @logger = Logger.new(BuilderLogDevice.new(ws, "#{log_file}"))
       @logger.info "Initialized. Git commit id: #{@git_commit_id}"
 
       # Initialize Git repository and set @rgit instance
@@ -113,7 +110,6 @@ module Builder
         end
         @logger.info("Application is ready! forwarding to port #{port}")
         @logger.info 'FINISHED'
-        @ws.send 'FINISHED'
       rescue
         if tried_count <= 30
           sleep 1
