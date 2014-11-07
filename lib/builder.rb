@@ -24,9 +24,10 @@ module Builder
     #   File to store the references git-commit-id and docker-image-id
     # [repository_conf]
     #   File to store repository url
-    def initialize(git_commit_id,
-                   logger,
+    def initialize(ws,
+                   git_commit_id,
                    work_dir = '/app/images',
+                   log_file = "#{work_dir}/builder.log",
                    id_file = "#{work_dir}/ids",
                    repository_conf = "#{work_dir}/preview_target_repository")
 
@@ -38,7 +39,7 @@ module Builder
       @git_commit_id = git_commit_id
       @repository = read_repository_info
 
-      @logger = logger
+      @logger = Logger.new(BuilderLogDevice.new(@ws, "#{log_file}"))
       @logger.info "Initialized. Git commit id: #{@git_commit_id}"
 
       # Initialize Git repository and set @rgit instance
