@@ -38,6 +38,7 @@ module Builder
       @git_commit_id = git_commit_id
       @repository = read_repository_info
 
+      @ws = ws
       @logger = Logger.new(BuilderLogDevice.new(ws, "#{log_file}"))
       @logger.info "Initialized. Git commit id: #{@git_commit_id}"
 
@@ -112,6 +113,7 @@ module Builder
         end
         @logger.info("Application is ready! forwarding to port #{port}")
         @logger.info 'FINISHED'
+        @ws.send 'FINISHED'
       rescue
         if tried_count <= 30
           sleep 1
