@@ -4,6 +4,8 @@ require 'logger'
 
 require 'git'
 
+require 'builder/builder_log_device'
+
 module Builder
   class Builder
 
